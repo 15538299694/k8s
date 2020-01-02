@@ -1,4 +1,5 @@
 # Ingress资源
+云上环境，我们使用`SLB`；传统环境，我们会选`Haproxy`、`LVS`，但在`kubernetes`中，我只会选择`ingress(controllers)`!
 - What is Ingress?
 - What is IngressControllers?
 - Ingress Controllers对比
