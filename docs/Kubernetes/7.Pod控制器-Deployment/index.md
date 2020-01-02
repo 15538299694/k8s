@@ -1,3 +1,12 @@
+# Pod控制器-Deployment
+本章节开始，将对控制器逐个进行讲解和分析，我们先讲解最基础且最常用的控制器：`Deployment`！
+- 控制器对象的分类
+- What is Deployment?
+- Deployment的更新机制
+- ReplicaSet
+- 命令补充
+- Deployment-demo
+
 ## 1.控制器对象的分类
 
 ### 1.守护进程型
@@ -24,7 +33,7 @@ Job：一次性任务
 
 Cronjob：定时任务
 
-## 2. what is Deployment?
+## 2. What is Deployment?
 
 `Deploymen`是一个提供申明`Pod`更新和`Reolica Sets`状态的控制器。换句话说：
 > 你在deployment对象中描述了一个期望状态，接着deployment控制器会让当前状态和用户期望状态保持一致。比如我期望运行2个nginx Pod，当一个Pod因为不可抗因素下线的时候deployment控制器就会根据用户期望的状态再启动一个nginx pod。
@@ -240,5 +249,5 @@ ReplicaSet组件的作用，想必现在你已经有些许的了解了：
 kubectl get pod -w
 ```
 
-## 6.deployment-demo
+## 6.Deployment-demo
 [deployment-demo](https://github.com/Aaron1989/CloudNativeNotes/tree/master/docs/Kubernetes/6.Pod%E8%B5%84%E6%BA%90%E7%AE%A1%E7%90%86)
