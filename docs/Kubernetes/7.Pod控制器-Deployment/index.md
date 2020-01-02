@@ -1,31 +1,14 @@
-![deployment拓扑-1](https://github-aaron89.oss-cn-beijing.aliyuncs.com/Docker/deployment.png)
-
-## 1.系统级别的pod资源清单
-
-系统默认的这四个pod，修改后不需要手动重载，k8s集群会自动热加载（数分钟内）
-```bash
-cd /etc/kubernetes/manifests/
-    
-[root@centos-1 manifests]# ll
-总用量 16
--rw-------. 1 root root 1773 11月 25 17:00 etcd.yaml
--rw-------. 1 root root 2606 11月 25 17:00 kube-apiserver.yaml
--rw-------. 1 root root 2303 11月 25 17:00 kube-controller-manager.yaml
--rw-------. 1 root root 1119 11月 25 17:00 kube-scheduler.yaml
-
-```
-
-## 2.对象分类
+## 1.控制器对象的分类
 
 ### 1.守护进程型
 
-1.无状态应用:非系统级（Nginx等）
+1.无状态应用:非系统级应用（Nginx等）
 
 推荐使用：Deployment，ReplicaSet
     
-2.无状态应用:系统级
+2.无状态应用:系统级应用
 
-应用场景：日志、监控收集客户端：场景就是每个node节点需要且只需要运行1个
+应用场景：日志和监控收集客户端：场景就是每个node节点需要且只需要运行1个pod
 
 推荐使用：DaemonSet
     
@@ -41,10 +24,29 @@ Job：一次性任务
 
 Cronjob：定时任务
 
+## 2. what is Deployment?
+
+`Deploymen`是一个提供申明`Pod`更新和`Reolica Sets`状态的控制器。换句话说：
+> 你在deployment对象中描述了一个期望状态，接着deployment控制器会让当前状态和用户期望状态保持一致。比如我期望运行2个nginx Pod，当一个Pod因为不可抗因素下线的时候deployment控制器就会根据用户期望的状态再启动一个nginx pod。
+
+![deployment拓扑-1](https://github-aaron89.oss-cn-beijing.aliyuncs.com/Docker/deployment.png)
+
+第二章节的`kubernetes`集群架构里，我说过`tomcat`和`redis`是通过相关`service`进行"连接"的，这其实只是为了大家能更简单的理解。其实`serice`会去找到对应的`deployment`，然后`deployment`根据申明的`Replica Sets`的配置，控制对应`Pod`容器的数量和状态。
     
-## 3.Deployment
+## 3.Deployment的更新机制
+
+![deployment更新机制](https://github-aaron89.oss-cn-beijing.aliyuncs.com/Kubernetes/deployment.png)
+你可以发现`Deployment`的更新机制是基于滚动更新的，具体顺序如下：
+- 首先，创建一个新的`RS`控制器，版本为`v2`；
+- 接着将旧控制器的pod陆续下线，同时新的RS控制器同步上线对应Pod；
+- Pod更新完成后，弃用旧的RS控制器，滚动发布就此完成。
+
+> 你可以使用kubectl get pod -o wide -w观察pod滚动更新情况，可以使用kubectl get rs -o wide观察RS控制器的名字、状态等信息。
+
+> 你也可以使用pause命令实现基于deployment的金丝雀发布策略。
+
+这里我补充了一个`RS`控制器状态，你可以观察发现，各控制器的命名、期望状态、当前状态和就绪状态。
 ```text
-用来管理ReplicaSet以及它的历史版本（支持回滚）,实现支持各种发布策略：滚动、蓝绿、金丝雀发布（金丝雀可以分特定流量到不同版本，但这个功能需要服务网格的支持）
    
 #使用命令查看rs控制器的历史版本    
 [root@centos-1 mainfasts]# kubectl get rs -o wide
@@ -56,9 +58,10 @@ ngx-new-cb79d555   2         2         2       2d22h   nginx        nginx       
 
 ```   
 
-### 1.滚动发布和回滚
+### 1.滚动发布和回滚实战
 
-1) 发布`nginx1.10`版本，并限制滚动策略：最多新增1个(`maxSurge`)最少下线1个(`maxUnavailable`)
+1) 我们首先编辑`deployment-nginx.yaml`，并`apply -f`，发布`nginx1.10`版本。
+其中我们给定了滚动策略：最多新增1个(`maxSurge`)最少下线1个(`maxUnavailable`)
 
    第一次发布的时候是新增1个，下线2个
 ```yaml
@@ -94,20 +97,14 @@ spec:
             path: /
             port: http
 ```
-2) 修改`yaml`的`nginx`版本为`1.13`，发布并观察。可以发现`deployment`对应的`rs`控制器逐步应用至`deploy-nginx-567c45c74`（`nginx:1.13-alpine`）
+2) 接着，我们通过修改`deployment-nginx.yaml`的`image: nginx:1.10-alpine`版本为`1.13`，发布并观察。可以发现`deployment`对应的`rs`控制器逐步应用至`deploy-nginx-567c45c74`（`nginx:1.13-alpine`）
 ```bash
 [root@centos-1 chapter5]# kubectl get rs -o wide
 NAME                      DESIRED   CURRENT   READY   AGE     CONTAINERS   IMAGES              SELECTOR
 deploy-nginx-567c45c748   2         2         0       51s     nginx        nginx:1.13-alpine   app=nginx,pod-template-hash=567c45c748
 deploy-nginx-5745bb45d7   2         2         2       7m2s    nginx        nginx:1.10-alpine   app=nginx,pod-template-hash=5745bb45d7
 deploy-nginx-67f876bcb6   0         0         0       5m51s   nginx        nginx:1.11-alpine   app=nginx,pod-template-hash=67f876bcb6
-    
-[root@centos-1 chapter5]# kubectl get rs -o wide
-NAME                      DESIRED   CURRENT   READY   AGE     CONTAINERS   IMAGES              SELECTOR
-deploy-nginx-567c45c748   2         2         0       52s     nginx        nginx:1.13-alpine   app=nginx,pod-template-hash=567c45c748
-deploy-nginx-5745bb45d7   2         2         2       7m3s    nginx        nginx:1.10-alpine   app=nginx,pod-template-hash=5745bb45d7
-deploy-nginx-67f876bcb6   0         0         0       5m52s   nginx        nginx:1.11-alpine   app=nginx,pod-template-hash=67f876bcb6
-    
+        
 [root@centos-1 chapter5]# kubectl get rs -o wide
 NAME                      DESIRED   CURRENT   READY   AGE     CONTAINERS   IMAGES              SELECTOR
 deploy-nginx-567c45c748   3         3         2       2m40s   nginx        nginx:1.13-alpine   app=nginx,pod-template-hash=567c45c748
@@ -115,7 +112,7 @@ deploy-nginx-5745bb45d7   0         0         0       8m51s   nginx        nginx
 deploy-nginx-67f876bcb6   0         0         0       7m40s   nginx        nginx:1.11-alpine   app=nginx,pod-template-hash=67f876bcb6
 
 ```
-3) 查看历史版本,第4条是我们最新的版本
+3) 同时，我们可以查看历史版本，第4条是我们最新的版本。由于前几次发布没有新增--record=true字段，所以显示为`none`
 ```bash
 [root@centos-1 chapter5]# kubectl rollout history deployment/deploy-nginx
 deployment.apps/deploy-nginx 
@@ -126,7 +123,8 @@ REVISION  CHANGE-CAUSE
 
 ```
 
-4) 回滚至上个版本，并观察`rs`变化,发现已经全部切换至`1.10`的`nginx`,至此滚动发布的策略和回滚已经演示完毕
+4) 接下来，我将演示如何回滚至上个版本。
+我们使用rollout undo命令进行回滚，默认--to-revision=0（上一个版本）。观察`rs`变化,发现已经全部切换至`1.10`的`nginx`,至此滚动发布的策略和回滚已经演示完毕
 ```bash
 [root@centos-1 chapter5]# kubectl rollout undo deployment/deploy-nginx --to-revision=0
 deployment.apps/deploy-nginx rolled back
@@ -145,16 +143,16 @@ deploy-nginx-67f876bcb6   0         0         0       10m    nginx        nginx:
 
 ```
 
-### 2.金丝雀发布
+### 2.金丝雀发布实战
 
-1) 将上文的`1.10`的`nginx`，发布金丝雀版本：`1.14`
+1) 这里，我们基于上文的`1.10`的`nginx`，发布金丝雀版本：`1.14`
 ```bash
 [root@centos-1 chapter5]# kubectl set image deployment deploy-nginx nginx=nginx:1.14-alpine && kubectl rollout pause deployment deploy-nginx
 deployment.apps/deploy-nginx image updated
 deployment.apps/deploy-nginx paused
 ```
 
-2) 此时发现`pod`新老版本共存，2个新的2个老的
+2) 此时发现`pod`新老版本共存，2个新版本2个老版本。你可以通过控制器名称后面的`HASH`数列，清晰观察到不通版本的控制器。
 ```bash
 ^C[root@centos-1 dingqishi]# kubectl get pod  -w
 NAME                            READY   STATUS    RESTARTS   AGE
@@ -187,7 +185,8 @@ deploy-nginx-754874567-l6q7h    1/1     Running   0          61s
 deploy-nginx-754874567-q4bsh    1/1     Running   0          61s
 ```
 
-3) 如果新版本的用户满意度不高，需要回滚的话，就用上文提到的`rollout`命令
+3) 如果新版本的用户满意度不高，需要回滚的话，此时我们也可以用上文提到的`rollout`命令。
+> 再次提示：--to-revision=0为默认参数，意思是上一个版本，如果要回到指定版本，按需指定就行了。
 ```bash
 kubectl rollout undo deployment/deploy-nginx --to-revision=0
 ```
@@ -203,8 +202,6 @@ deploy-nginx-5745bb45d7-84s4c   1/1     Running   0          27m
 deploy-nginx-5745bb45d7-dqt8q   1/1     Running   0          27m
 deploy-nginx-754874567-l6q7h    1/1     Running   0          8m35s
 deploy-nginx-754874567-q4bsh    1/1     Running   0          8m35s
-    
-    
     
     
 deploy-nginx-5745bb45d7-84s4c   1/1     Terminating   0          30m
@@ -231,11 +228,11 @@ deploy-nginx-754874567-q4bsh   1/1     Running   0          14m
 ```
 
 ## 4.ReplicaSet
-```text
-   在给定的任何时间，保证一个明确的pod运行数量
-   管理底层Pod
-   不应该人为介入进行调整、管理
-```
+ReplicaSet组件的作用，想必现在你已经有些许的了解了：
+- 在给定的任何时间，保证一个明确的pod运行数量
+- 管理底层Pod
+- 不应该人为介入进行调整、管理
+
 
 ## 5.命令补充
 ```bash
@@ -244,5 +241,4 @@ kubectl get pod -w
 ```
 
 ## 6.deployment-demo
-
-https://github.com/Aaron1989/CloudNativeNotes/blob/master/Kubernetes/7.Pod%E6%8E%A7%E5%88%B6%E5%99%A8-Deployment/depolyment-nginx.yaml
+[deployment-demo](https://github.com/Aaron1989/CloudNativeNotes/tree/master/docs/Kubernetes/6.Pod%E8%B5%84%E6%BA%90%E7%AE%A1%E7%90%86)
