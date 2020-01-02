@@ -1,6 +1,6 @@
 # 使用Kubeadm部署k8s集群
-kubeadm是一个提供了`kubeadm init`和`kubeadm join`最佳实践命令，且用于快速构建一个kubernetes集群的工具，你可以使用此工具快速构建一个kubernetes学习环境。
-通过本章节的学习，你将能够使用kubeadm工具，成功构建出一个基础的kubernetes集群环境
+`kubeadm`是一个提供了`kubeadm init`和`kubeadm join`最佳实践命令，且用于快速构建一个`kubernetes`集群的工具，你可以使用此工具快速构建一个`kubernetes`学习环境。
+通过本章节的学习，你将能够使用`kubeadm`工具，成功构建出一个基础的`kubernetes`集群环境
 
 
 - 环境准备
@@ -173,7 +173,7 @@ docker info
 
 ## 5.使用Kubeadm部署k8s集群
 
-1) 首先安装k8s相关软件包。
+1) 首先安装`k8s`相关软件包。
 [阿里云镜像仓库](https://mirrors.aliyun.com/)配置如下所示： 
 ```bash
 cd /etc/yum.repos.d/

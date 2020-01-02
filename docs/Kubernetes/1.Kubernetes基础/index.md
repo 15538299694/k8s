@@ -1,5 +1,5 @@
 # Kubernetes基础
-随着业务需求的快速发展，“动态”特性仿佛就成了技术解决业务刚需的必要条件，3年前的spring cloud通过注册中心eureka解决了服务动态上下线、注册和续约的问题，近一年，kubernetes通过其强大的基础对象和平台的动态特性，从运维侧对产品的稳定性和扩展性保驾护航！
+随着业务需求的快速发展，“动态”特性仿佛就成了技术解决业务刚需的必要条件，3年前的`spring cloud`通过注册中心`eureka`解决了服务动态上下线、注册和续约的问题，近一年，`kubernetes`通过其强大的基础对象和平台的动态特性，从运维侧对产品的稳定性和扩展性保驾护航！
 
 - 架构图
 - 流程概述
@@ -11,8 +11,8 @@
 
 
 ![架构图-1](https://github-aaron89.oss-cn-beijing.aliyuncs.com/Docker/Kubernetes-Components-1.png)
-首先引入大家眼帘的是一张关于Kubernetes的组件架构图，这是我从官网摘录下来的。
-如图，我们可以粗略观察发现，Kubernetes分为Master端和Nodes端，以及一个外接的cloud端。
+首先引入大家眼帘的是一张关于`Kubernetes`的组件架构图，这是我从官网摘录下来的。
+如图，我们可以粗略观察发现，`Kubernetes`分为`Master`端和`Nodes`端，以及一个外接的`cloud`端。
 他们工作逻辑和内部组件，你可以参考下面的文字描述：
 
 ### 1.Master节点

@@ -1,5 +1,5 @@
 # Kubernetes基础和部署说明
-通过上一章节的学习，想必你对kubernetes已经有了一个较初步的了解，接着本章节将首先就基础组件、集群基础对象和控制器进行详细的介绍和说明，然后辨析集群网络中的三种网络和专有名词，最后关于新手部署测试和生产环境的部署要点进行一些归纳和说明
+通过上一章节的学习，想必你对`kubernetes`已经有了一个较初步的了解，接着本章节将首先就基础组件、集群基础对象和控制器进行详细的介绍和说明，然后辨析集群网络中的三种网络和专有名词，最后关于新手部署测试和生产环境的部署要点进行一些归纳和说明
 
 - 基础组件
 - 基础对象（Objects）
@@ -12,7 +12,7 @@
 ![基础组件](https://github-aaron89.oss-cn-beijing.aliyuncs.com/Kubernetes/kubernetes_components.png)
 
 
-如图所示，kubernetes集群中主要分为三个组件：
+如图所示，`kubernetes`集群中主要分为三个组件：
 ### 1.Master Components
 - kube-apiserver：作为k8s控制平面的前端，也是所有请求接收的入口
 - etcd：k8s集群后端所有集群数据的高可用k/v存储数据库
@@ -42,7 +42,7 @@ Pod、service、NameSpace和Volume
 
 ![集群对象](https://github-aaron89.oss-cn-beijing.aliyuncs.com/Kubernetes/k8s-basicobjects.png)
 
-这是一张传统架构tomcat请求redis集群于kubernetes集群中的新架构。
+这是一张传统架构`tomcat`请求`redis`集群于`kubernetes`集群中的新架构。
 如图可知，
 > 外部流量首先访问tomcat service，tomcat service再将流量分发至相关的tomcat pod上面，接着，tomcat pod也不是直接访问相关redis pod，而是同理，只访问redis server，redis server负责后续流量的转发。如果你了解eureka，想必你对这张图的理解是很快的。
 

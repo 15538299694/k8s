@@ -6,13 +6,14 @@
 - Pod对象的配置格式
 - Pod对象的申明类型
 - 命令补充
+- 基础yaml
 - 三种网络代理方式
 - 参考文档
 
 ## 1.What is Pod?
 
 ![What is Pod](https://github-aaron89.oss-cn-beijing.aliyuncs.com/Kubernetes/pod.png)
-那什么是Pod？如图所示，Pod中有一个pause容器，和一堆业务容器，他们有各自的`PID`、`MOUNT`和`USER`，但他们共享`IPC`、`UTS`和`NETWORK`。对于这六个专属名词的描述，可以看下面的表格：
+那什么是`Pod`？如图所示，`Pod`中有一个`pause`容器，和一堆业务容器，他们有各自的`PID`、`MOUNT`和`USER`，但他们共享`IPC`、`UTS`和`NETWORK`。对于这六个专属名词的描述，可以看下面的表格：
 
 简称 | 描述 
 ---- | ----- 
@@ -44,7 +45,7 @@ USER |将本地的虚拟user-id映射到真实的user-id
 陈述式：
     kubectl create -f xx.yaml
         
-申明式：
+申明式（建议使用）：
     kubectl apply -f xx.yaml
 ```
 
@@ -56,7 +57,7 @@ kubectl explain pods(.spec.tolerations….)
 #导出pod对应的yaml模版：
 kubectl  get pod ngx-new-cb79d555-gqwf8 -o yaml --export > ngx-new-demo.yaml
   
-#Docker 策略    
+#Docker策略补充    
 Docker:
     imagePullPolicy:
         Always:无论本地有没有镜像，都要去互联网拖(常用于拉取latest的镜像)
@@ -64,14 +65,28 @@ Docker:
         Nerver:本地有就直接用，没有再去拖
 
 ```
+温馨提示：
+> 你要善于使用kubectl explain命令，这是你学习、"原创"kubernetes配置清单的大宝剑！
 
-## 6.三种网络代理方式
+## 6.基础yaml
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: first-pod
+spec:
+  containers:
+  - name: bash-container
+    image: docker.io/busybox
+```
+
+## 7.三种网络代理方式
 
     Service：申明NodePort类型，可以通过任意节点访问
     hostPort：直接将容器的端口与所调度的节点上的端口路由，这样用户就可以通过宿主机的IP加上来访问Pod了
     hostNetwork：共享宿主机的网络名称空间
 
-## 7.参考文档
+## 8.参考文档
 
 reference文档：https://kubernetes.io/docs/reference/using-api/api-overview/
 

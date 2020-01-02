@@ -1,10 +1,27 @@
 ## 1.标签
+标签是“键值”类型的数据，它们可于资源创建时直接指定，也可随时按需添加，而后即可由标签选择器进行匹配度检查从而完成资源的挑选。
+
+你需要注意：
+- 一个对象可拥有不止一个标签，而同一个标签也可被添加至多个资源之上;
+- 我们可以为资源附加多个不同纬度的标签以实现灵活的资源分组管理功能，例如版本标签、环境标签等，用于交叉标识同一个资源所属的不同版本和环境。
+
+## 2.标签选择器
+
+标签选择器用于表达标签的查询条件或选择标准，支持两种选择器：
+
+1.基于等值关系
+> =、==和!=三种
+
+2.基于集合关系
+> in、not in等
+
+下面我补充来一个基于label的查询常用命令：
 ```bash
-#帮助命令
+#label的帮助命令查询
 kubectl label -h
     
     
-#相关查询命令
+#基于label的相关查询命令
 [root@centos-1 dingqishi]#    kubectl get pod --show-labels
 NAME                     READY   STATUS    RESTARTS   AGE     LABELS
 ngx-new-cb79d555-gqwf8   1/1     Running   0          4h57m   app=ngx-new,pod-template-hash=cb79d555
@@ -23,27 +40,28 @@ kube-system   kube-flannel-ds-amd64-ltp9p   1/1     Running   0          2d23h  
 kube-system   kube-flannel-ds-amd64-v9gmq   1/1     Running   10         2d23h   flannel
 ```
 
-## 2.资源注解（annotation）
+## 3.资源注解（annotation）
     
-不受字符数量的限制，但不用用于标签的筛选，仅用于为资源提供“元数据”信息
+不受字符数量的限制，你需要注意和区分的是，资源注解不用用于标签的筛选，仅用于为资源提供“元数据”信息
 ```bash
-#帮助命令
+#资源注解的帮助命令查询
 kubectl annotate -h
-
 ```
     
-## 3.探针
+## 4.探针
+
+探针是Pod容器声明周期中健康与否至关重要的一步的相关组件。
 
 ### 1.liveness
     
-    健康状态检查，用于检测Pod的健康性，后续的动作会重启`Pod`
+> 健康状态检查，用于检测Pod的健康性，后续的动作会重启`Pod`
     
-1) 帮助文档
+1) 你可以使用explain查询到liveness探针的字段配置说明（这个很有用！）
 ```bash
 kubectl explain pods.spec.containers.livenessProbe
 ```
 
-2) 编辑`liveness-exec.yaml`，并`apply -f`生成`pod`
+2) 我们编辑`liveness-exec.yaml`，里面会增加一个livenessProbe，用于探测/tmp/healthy文件是否存在，然后使用`apply -f`命令，生成该Pod
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -66,7 +84,7 @@ spec:
         - -e
         - /tmp/healthy
 ```
-3) 观察`pod`情况，发现30秒后，`pod`探测不到`/tmp/healthy`文件，并进行了重启操作，`RESTARTS`为1
+3) 观察`pod`情况，发现30秒之内，`pod`探测不到`/tmp/healthy`文件，并进行了重启操作，`RESTARTS`为1
 ```bash
 [root@centos-1 chapter4]# kubectl get pods
 NAME                     READY   STATUS    RESTARTS   AGE
@@ -88,18 +106,20 @@ describe pod liveness-exec
 
 ```
 
-4) 同理可使用本页的`liveness-http.yaml`进行学习和实践
+4) 同理可使用本页的[liveness-http.yaml](https://github.com/Aaron1989/CloudNativeNotes/tree/master/docs/Kubernetes/6.Pod%E8%B5%84%E6%BA%90%E7%AE%A1%E7%90%86)，进行学习和实践，相关配置清单我已经提供好了。
+
+你只需要：1.先读懂yaml清单 2.apply测试即可
 
 ### 2.readiness
 
-    就绪状态检查，没有重启Pod权利，用于为Service流量分发作为依据
+> 就绪状态检查，没有重启Pod权利，用于为Service流量分发作为依据
 
-1) 帮助文档
+1) 你可以使用explain查询到readiness探针的字段配置说明（这个很有用！）
 ```bash
 kubectl explain pods.spec.containers.readinessProbe
 ```
 
-2) 编辑`readiness-exec.yaml`，并`apply -f`生成`pod`
+2) 编辑`readiness-exec.yaml`，并使用`apply -f`生成`Pod`。这里我们增加`readiness`探针，用于测试`/tmp/ready`文件是否存在，该探针第一次探测为第五秒开始，探测周期为5秒
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -128,7 +148,7 @@ readiness-exec           0/1     Running             0          11s     10.244.1
 readiness-exec           1/1     Running             0          43s     10.244.1.34   centos-2.shared   <none>           <none>
 ```
 
-## 4.Pod对象的相位
+## 5.Pod对象的相位
 
    `Pod`一共有5个状态，分为`Pending`、`Running`、`Succeeded`、`Failed`和`Unknown`，其中：
 ```text
@@ -145,7 +165,7 @@ Unknown：
 
 ```
 
-## 5.Pod Security
+## 6.Pod Security
     
 `Pod`对象的安全上下文用于设定Pod或容器的权限和访问控制功能，其支持设置的常用属性包括以下几个方面：
 ```text
@@ -189,9 +209,9 @@ spec:
 mkdir: can't create directory '1': Permission denied
 ```
 
-## 6.资源配额
+## 7.Pod资源配额
 
-1) 查看文档
+1) 资源配合的配置文档查询
 ```bash
 kubectl explain pod.spec.containers.resources
 ```
@@ -231,22 +251,25 @@ spec:
         cpu: "400m"
 ```
 
-## 7.Pod服务质量类别（ QoS Class）
+## 8.Pod服务质量类别（ QoS Class）
 
 `kubectl describe pod`可查看对应的服务质量类别,共有以下三类：
-```text
-Guaranteed: 必须保证,requests和limits都有，且都相等，最高优先级
-Burstable: 尽量满足，requests或limits有一个，中等优先级
+
+### 1.Guaranteed
+Guaranteed: 必须保证,requests和limits都有设置，且都相等，最高优先级
+
+### 2.Burstable
+Burstable: 尽量满足，requests或limits有一个设置了，中等优先级
+
+### 3.BestEffort
 BestEffort: 未设置requests或limits属性的pod资源，优先级最低
 
-```
-
-## 8.Pod中断预算
+## 9.Pod中断预算
 
 `PDB（PodDisruptionBudget）`中断预算由`k8s1.4`版本引入，用于为那些自愿的中断做好预算方案，
 限制可自愿中断的最大Pod副本数量或确保最少可用的`Pod`副本数，以确保服务的高可用性。
 
-1) 命令
+1) 配置字段的查询命令
 ```bash
 kubectl get pdb
 ```
