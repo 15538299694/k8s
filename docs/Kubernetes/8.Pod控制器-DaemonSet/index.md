@@ -95,7 +95,7 @@ centos-3.shared   Ready    <none>   4d    v1.16.3   beta.kubernetes.io/arch=amd6
 ``` 
 
 ## 4.知识点补充
-节点有污点，会影响调度策略，我们在[污点和容忍度](https://aaron1989.github.io/CloudNativeNotes/Kubernetes/23.%E6%B1%A1%E7%82%B9%E5%92%8C%E5%AE%B9%E5%BF%8D%E5%BA%A6/)章节会详细讲解。
+节点有污点，会影响调度策略，我在[污点和容忍度](https://aaron1989.github.io/CloudNativeNotes/Kubernetes/23.%E6%B1%A1%E7%82%B9%E5%92%8C%E5%AE%B9%E5%BF%8D%E5%BA%A6/)章节会详细讲解。
 ```bash
 [root@centos-1 mainfasts]# kubectl describe node centos-1.shared
 Name:               centos-1.shared
