@@ -1,10 +1,10 @@
 # Pod控制器-Job
-- What is Job
+- What is Job？
 - 命令补充
 - Demo实战
 
 
-## 1.What is Job
+## 1.What is Job？
 `Job`控制器为一次性任务，任务完成时的状态为`Completed`，常用作备份操作,如下所示：
 ```bash
 [root@centos-1 mainfasts]# kubectl get pod

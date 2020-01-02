@@ -1,11 +1,11 @@
 # Pod控制器-DaemonSet
 本章节给你带来第二个控制器：`DaemonSet`的讲解。
 你将了解到：什么是`DaemonSet`，以及他的配置实战，最后我还引出了污点和容忍度的专有名词，如果你已经有了一定的基础，可以选择性地直接去阅读该章节（看个人）。
-- What is DaemonSet
+- What is DaemonSet？
 - 命令补充
 - 实战配置
 - 知识点补充
-## 1.What is DaemonSet
+## 1.What is DaemonSet？
 `DaemonSet`是一个确保每个符合规则的`node`节点有且仅有一个`Pod`的控制器。你要注意以下两点：
 - 1.新节点加入集群，也会新增一个`Pod`
 - 2.当节点下线后，相应Pod也会被回收
